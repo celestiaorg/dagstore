@@ -55,6 +55,23 @@ func (sa *ShardAccessor) Shard() shard.Key {
 }
 
 func (sa *ShardAccessor) Read(p []byte) (int, error) {
+	sa.lk.Lock()
+	defer sa.lk.Unlock()
+
+	if sa.mmapr == nil {
+		if f, ok := sa.data.(*os.File); ok {
+			if mmapr, err := mmap.Open(f.Name()); err != nil {
+				log.Warnf("failed to mmap reader of type %T: %s; using reader as-is", sa.data, err)
+			} else {
+				sa.mmapr = mmapr
+			}
+		}
+	}
+
+	if sa.mmapr != nil {
+		return sa.mmapr.ReadAt(p, 0)
+	}
+
 	return sa.data.Read(p)
 }
 
@@ -62,7 +79,10 @@ func (sa *ShardAccessor) Blockstore() (ReadBlockstore, error) {
 	var r io.ReaderAt = sa.data
 
 	sa.lk.Lock()
-	if f, ok := sa.data.(*os.File); ok {
+	if sa.mmapr != nil {
+		// If mmapr is already set, use it.
+		r = sa.mmapr
+	} else if f, ok := sa.data.(*os.File); ok {
 		if mmapr, err := mmap.Open(f.Name()); err != nil {
 			log.Warnf("failed to mmap reader of type %T: %s; using reader as-is", sa.data, err)
 		} else {
