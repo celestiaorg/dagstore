@@ -80,7 +80,6 @@ func (sa *ShardAccessor) Blockstore() (ReadBlockstore, error) {
 
 	sa.lk.Lock()
 	if sa.mmapr != nil {
-		// If mmapr is already set, use it.
 		r = sa.mmapr
 	} else if f, ok := sa.data.(*os.File); ok {
 		if mmapr, err := mmap.Open(f.Name()); err != nil {
