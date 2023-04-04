@@ -126,14 +126,9 @@ func (w *readerAtWrapper) Read(p []byte) (n int, err error) {
 
 	n, err = w.readerAt.ReadAt(p, w.readOffset)
 	w.readOffset += int64(n)
-
-	if err == io.EOF {
-		return n, err
-	}
-
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return n, errors.New("readerAtWrapper: error reading from the underlying ReaderAt")
 	}
 
-	return n, nil
+	return n, err
 }
