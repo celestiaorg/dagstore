@@ -2,7 +2,7 @@ package dagstore
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -120,14 +120,10 @@ type readerAtWrapper struct {
 }
 
 func (w *readerAtWrapper) Read(p []byte) (n int, err error) {
-	if w.readerAt == nil {
-		return 0, errors.New("readerAtWrapper: readerAt is nil")
-	}
-
 	n, err = w.readerAt.ReadAt(p, w.readOffset)
 	w.readOffset += int64(n)
 	if err != nil && err != io.EOF {
-		return n, errors.New("readerAtWrapper: error reading from the underlying ReaderAt")
+		return n, fmt.Errorf("readerAtWrapper: error reading from the underlying ReaderAt: %w", err)
 	}
 
 	return n, err
