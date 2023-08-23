@@ -12,8 +12,6 @@ import (
 	carv2 "github.com/ipld/go-car/v2"
 	"github.com/ipld/go-car/v2/blockstore"
 	"github.com/ipld/go-car/v2/index"
-
-	"golang.org/x/exp/mmap"
 )
 
 // ReadBlockstore is a read-only view of Blockstores. This will be implemented
@@ -32,8 +30,6 @@ type ShardAccessor struct {
 	data  mount.Reader
 	idx   index.Index
 	shard *Shard
-
-	mmapr *mmap.ReaderAt
 }
 
 func NewShardAccessor(data mount.Reader, idx index.Index, s *Shard) (*ShardAccessor, error) {
